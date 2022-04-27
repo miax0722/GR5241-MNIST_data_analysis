@@ -1,5 +1,5 @@
 # GR5241-MNIST_data_analysis
 
-### lib Folder
+### output Folder
 
-The lib directory contains the requirement of this project and the referred paper.
+The output directory contains the output of the project (html and pdf files).
