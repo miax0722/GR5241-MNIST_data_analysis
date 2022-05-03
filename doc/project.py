@@ -191,10 +191,9 @@ for seed in range(5):
   #Create single layer NN
   ann = Sequential()
   #add one hidden layers
-  #ann.add(Flatten())
-  ann.add(Dense(100))
-  ann.add(Dense(10))
-  ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy()])
+  ann.add(Dense(100,activation='relu',input_shape=(784,)))
+  ann.add(Dense(10,activation='softmax'))
+  ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy()])
   history=ann.fit(X_train,Y_train,epochs=150,validation_split=1/6,shuffle=True,verbose=0,batch_size=100)
   res=pd.DataFrame(history.history)
   res[['loss','val_loss']].plot(figsize=(10,5))
@@ -203,16 +202,16 @@ for seed in range(5):
   plt.title('Cross Entropy using seed=%d'%(seed))
   plt.show()
 
-"""We may find the mean validation error is fluctuating and seem to decrease when the mean training error has a general trend of decreasing, and validation error will be higher than training error. Then we want to try if this phenomenon also exists if we set test data as the validation set (use the final model in above loop):"""
+"""We may find the mean validation error is fluctuating and seem to decrease then increase when the mean training error has a general trend of decreasing, which indicates the occurrence of overfitting. And the validation error will be higher than training error. Then we want to try if this phenomenon also exists if we set test data as the validation set (use the final model in above loop):"""
 
 np.random.seed(4)
 #Create single layer NN
 ann = Sequential()
 #add one hidden layers
 #ann.add(Flatten())
-ann.add(Dense(100))
-ann.add(Dense(10))
-ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy()])
+ann.add(Dense(100,activation='relu',input_shape=(784,)))
+ann.add(Dense(10,activation='softmax'))
+ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy()])
 history=ann.fit(X_train,Y_train,epochs=150,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
 res=pd.DataFrame(history.history)
 res[['loss','val_loss']].plot(figsize=(8,5))
@@ -230,10 +229,10 @@ for seed in range(5):
   ann = Sequential()
   #add one hidden layers
   #ann.add(Flatten())
-  ann.add(Dense(100))
-  ann.add(Dense(10))
+  ann.add(Dense(100,activation='relu',input_shape=(784,)))
+  ann.add(Dense(10,activation='softmax'))
   np.random.seed(seed)
-  ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=['accuracy'])
+  ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=['accuracy'])
   history=ann.fit(X_train,Y_train,epochs=150,validation_split=1/6,shuffle=True,verbose=0,batch_size=100)
   res=pd.DataFrame(history.history)
   res[['mis_classification error','val_mis_classification error']]=(1-res[['accuracy','val_accuracy']])*100
@@ -243,15 +242,15 @@ for seed in range(5):
   plt.title('mean Misclassfication error using seed=%d'%(seed))
   plt.show()
 
-"""We may see that for all 5 cases with different random seed, the validation misclassification error (loss) are still higher than training, but they generally have similar error than the case with metric cross entropy error mentioned above. Still, we use test set to validate our statement, and absolutely it's correct again. """
+"""We may see that for all 5 cases with different random seed, the validation misclassification error (loss) are still higher than training, but they generally become stable instead of decreasing or increasing than the case that metric is cross entropy error mentioned above. Besides, the error of training set goes to 0. Still, we use test set to validate our statement, and absolutely it's correct again. """
 
 #Create single layer NN
 ann = Sequential()
 #add one hidden layers
 #ann.add(Flatten())
-ann.add(Dense(100))
-ann.add(Dense(10))
-ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=['accuracy'])
+ann.add(Dense(100,activation='relu',input_shape=(784,)))
+ann.add(Dense(10,activation='softmax'))
+ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=['accuracy'])
 history=ann.fit(X_train,Y_train,epochs=150,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
 res=pd.DataFrame(history.history)
 res[['mis_classification error','val_mis_classification error']]=(1-res[['accuracy','val_accuracy']])*100
@@ -269,7 +268,7 @@ for i in range(W.shape[2]):
   plt.imshow(W[:,:,i])
   plt.xticks([])
   plt.yticks([])
-plt.subplots_adjust(wspace=0.01,hspace=0.01)
+plt.subplots_adjust(wspace=0.05,hspace=0.05)
 plt.show()
 
 """It seems that the weight visualization is good, as it'seither not too noisy or not too correlated.
@@ -286,9 +285,9 @@ for lr in [0.01,0.1,0.2,0.5]:
     ann = Sequential()
     #add one hidden layers
     #ann.add(Flatten())
-    ann.add(Dense(100))
-    ann.add(Dense(10))
-    ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
+    ann.add(Dense(100,activation='relu',input_shape=(784,)))
+    ann.add(Dense(10,activation='softmax'))
+    ann.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
     history=ann.fit(X_train,Y_train,epochs=150,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
     f,ax=plt.subplots(1,2,figsize=(14,7))
     res=pd.DataFrame(history.history)
@@ -305,15 +304,12 @@ for lr in [0.01,0.1,0.2,0.5]:
     plt.show()
     print("In this case, the misclassification error for test set is %3f"%(res['val_mis_classification error'][149])+'%.')
 
-"""From the result above, we may see the best parameter set of learning rate and momentum is $\{lr=0.01,momentum=0.5\}$ because:
+"""From the result above, we may see the best parameter set of learning rate and momentum is $\{lr=0.2,momentum=0.5\}$ because:
 
-- when lr=0.5, the NN did not work for cross entropy
-- when momentum is too high (0.9), the misclassification error becomes large and it seems to directly set all predictions as one label.
-- the error is more stable and lower than those when $lr=0.2$ or $0.5$
+- when lr=0.01, the error rate decrease slower than that when lr>0.01
+- This combination has the lowest error rate, though there seems to be an overfitting regarding to cross entropy.
 
-The parameter tuning method we used above is grid search. Actually, if we controls the momentum and only see the learning rate, we can see the convergence properties of this algorithm is when lr become larger ($lr>0.1$), the convergence may not hold as it fluctuates and the error goes up; As for momentum, we can see if we control the lr (when $lr \neq 0.01$), when momentum is increasing, the algorithm becomes less stable and convergent and has a lower error rate.
-
-Though the best parameter set we mentioned above is $\{lr=0.01,momentum=0.5\}$, we still consider the set $\{lr=0.1,momentum=0\}$ as generally the error decrease faster than lr=0.01 and it's also stable if compared to others, and the minumum error when lr=0.1 seem to be smaller.
+The parameter tuning method we used above is grid search. Actually, if we controls the momentum and only see the learning rate, we can see the convergence properties of this algorithm is when lr become larger ($lr>0.1$), the convergence will become faster; As for momentum, we can see if we control the lr (when $lr \neq 0.01$), when momentum is increasing, the algorithm also decrease faster in error. We also noticed that when lr and momentum is both large, an overfitting may occur and the testing error goes up.
 
 ### (ii). CNN with one layer of 2-D Convolution and pooling
 
@@ -332,9 +328,9 @@ cnn_1 = Sequential()
 cnn_1.add(Conv2D(32, (3,3), padding="same", activation="relu", input_shape=(28,28,1)))
 cnn_1.add(MaxPooling2D(2, 2))
 cnn_1.add(Flatten())
-cnn_1.add(Dense(100))
-cnn_1.add(Dense(10))
-cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
+cnn_1.add(Dense(100,activation='relu'))
+cnn_1.add(Dense(10,activation='softmax'))
+cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
 history=cnn_1.fit(X_train,Y_train,epochs=20,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
 f,ax=plt.subplots(1,2,figsize=(14,7))
 res=pd.DataFrame(history.history)
@@ -351,7 +347,7 @@ plt.show()
 
 """From the model training process above, when epoch reaches 10, the mean misclassification error seem to be stable. Between two metrics, we may consider more on the mean misclassification error as cross entropy seems to go up when epoch>5, but actually at this time the overall accuracy is not going down. 
 
-Then we continue doing parameter tuning with epoch=10, but this time we consider learning rate in $\{0.01,0.1,0.2,0.3\}$ and momentum in $\{0.1,0.3,0.5\}$
+Then we continue doing parameter tuning with epoch=20, but this time we consider learning rate in $\{0.01,0.1,0.2,0.3\}$ and momentum in $\{0.1,0.3,0.5\}$
 """
 
 seed=4
@@ -365,9 +361,9 @@ for lr in [0.01,0.1,0.2,0.3]:
     cnn_1.add(Conv2D(32, (3,3), padding="same", activation="relu", input_shape=(28,28,1)))
     cnn_1.add(MaxPooling2D(2, 2))
     cnn_1.add(Flatten())
-    cnn_1.add(Dense(100))
-    cnn_1.add(Dense(10))
-    cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
+    cnn_1.add(Dense(100,activation='relu'))
+    cnn_1.add(Dense(10,activation='softmax'))
+    cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
     history=cnn_1.fit(X_train,Y_train,epochs=20,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
     f,ax=plt.subplots(1,2,figsize=(14,7))
     res=pd.DataFrame(history.history)
@@ -384,10 +380,10 @@ for lr in [0.01,0.1,0.2,0.3]:
     plt.show()
     print("In this case, the misclassification error for test set is %3f"%(res['val_mis_classification error'][19])+'%.')
 
-"""From above parameter tuning process, we can see the best model is with parameter $\{lr=0.2,momentum=0.3\}$ with the mean misclassfication error=1.45%. Clearly, this algorithm outperforms the single layer NN and is much more stable in testing because it directly use 2-D data and the convolution and pooling process makes it more stable. Also, the visualization of the weight is shown below."""
+"""From above parameter tuning process, we can see the best model is with parameter $\{lr=0.2,momentum=0.5\}$ with the mean misclassfication error=1.11%. Clearly, this algorithm outperforms the single layer NN in testing because it directly use 2-D data and the convolution and pooling process makes it more stable. Also, the visualization of the weight is shown below."""
 
 seed=4
-sgd=keras.optimizers.SGD(learning_rate=0.2,momentum=0.3)
+sgd=keras.optimizers.SGD(learning_rate=0.2,momentum=0.5)
 np.random.seed(seed)
 #Create single layer NN
 cnn_1 = Sequential()
@@ -395,9 +391,9 @@ cnn_1 = Sequential()
 cnn_1.add(Conv2D(32, (3,3), padding="same", activation="relu", input_shape=(28,28,1)))
 cnn_1.add(MaxPooling2D(2, 2))
 cnn_1.add(Flatten())
-cnn_1.add(Dense(100))
-cnn_1.add(Dense(10))
-cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
+cnn_1.add(Dense(100,activation='relu'))
+cnn_1.add(Dense(10,activation='softmax'))
+cnn_1.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(),metrics=[SparseCategoricalCrossentropy(),'accuracy'])
 history=cnn_1.fit(X_train,Y_train,epochs=20,validation_data=(X_test,Y_test),verbose=0,batch_size=100)
 W = cnn_1.layers[0].get_weights()[0].reshape(3,3,-1)
 for i in range(W.shape[2]):
@@ -431,7 +427,7 @@ cnn.add(Flatten())
 cnn.add(Dense(64, activation="relu"))
 cnn.add(Dense(10))
 #compile model using accuracy to measure model performance
-cnn.compile(optimizer=sgd, loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=[SparseCategoricalCrossentropy(),'accuracy'])
+cnn.compile(optimizer=sgd,loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=[SparseCategoricalCrossentropy(),'accuracy'])
 #train CNN
 history=cnn.fit(X_train,Y_train,epochs=20,validation_data=(X_test,Y_test),verbose=0,batch_size=100)#can reach accuracy to nearly 99%
 f,ax=plt.subplots(1,2,figsize=(14,7))
@@ -566,7 +562,7 @@ np.unique(Y_train, return_counts=True)
 
 ### (i).CNN with one time 2-D Convolution 
 
-We first do the CNN with 1 time convolution, and still set `epoch=20`, `seed=4`, `lr=0.2` and `momentum=0.3`.
+We first do the CNN with 1 time convolution, and set `epoch=20`, `seed=4`, `lr=0.2` and `momentum=0.3`.
 """
 
 np.random.seed(4)
@@ -599,7 +595,7 @@ err_cnn_1 = np.mean(pred!=Y_test)*100
 print("In this case, the misclassification error for vallidation and test set are %3f"%
       (res['val_mis_classification error'][9])+'%', 'and %3f'%(err_cnn_1)+'% respectively.')
 
-"""We can see the mean misclassification error of this case is around 12.5%, which is far more than that in previous question using one time convolution CNN(1.45%). We may see the training error decrease to 0 when epoch goes to around 15 while test error is still around 15%, so we may consider the following parameter tuning process with seed=4, epoch=30 (in case of underfitting), and the parameter set is $\{lr:[0.01,0.1,0.2,0.3], momentum:[0.1,0.3,0.5]\}$."""
+"""We can see the mean misclassification error of this case is around 12.5%, which is far more than that in previous question using one time convolution CNN(1.11%). We may see the training error decrease to 0 when epoch goes to around 15 while test error is still around 15%, so we may consider the following parameter tuning process with seed=4, epoch=30 (in case of underfitting), and the parameter set is $\{lr:[0.01,0.1,0.2,0.3], momentum:[0.1,0.3,0.5]\}$."""
 
 for lr in [0.01,0.1,0.2,0.3]:
   for momentum in [0.1,0.3,0.5]:
@@ -800,8 +796,8 @@ Based on upon algorithms, we also use a new dataset which X_train is the conposi
 - 1.66% for SVM(kernel='rbf',C=3)
 - 2.92% for RandomForest(seed=20,n_estimators=200,max_depth=20)
 - 1.57% for SVM(kernel='rbf',C=4)
-- 7.84% for 1_layer_NN(SGD(lr=0.1,momentum=0),seed=4,epoch=150)
-- 1.45% for 1_Conv_CNN(SGD(lr=0.2,momentum=0.3),seed=4,epoch=20)
+- 1.80% for 1_layer_NN(SGD(lr=0.2,momentum=0.5),seed=4,epoch=150)
+- 1.11% for 1_Conv_CNN(SGD(lr=0.2,momentum=0.5),seed=4,epoch=20)
 - 0.77% for 3_Conv_CNN(SGD(lr=0.1,momentum=0.1),seed=4,epoch=20)
 
 **MNIST Arithmetic Dataset**: (Test Error)
